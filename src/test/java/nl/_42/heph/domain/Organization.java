@@ -1,12 +1,12 @@
 package nl._42.heph.domain;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.domain.Persistable;
+import javax.persistence.Entity;
 
-public class Organization implements Persistable<Long> {
+import nl._42.heph.shared.AbstractEntity;
 
-    @Id
-    private Long id;
+@Entity
+public class Organization extends AbstractEntity {
+
     private String name;
 
     public String getName() {
@@ -15,20 +15,6 @@ public class Organization implements Persistable<Long> {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    @Override
-    public Long getId() {
-        return id;
-    }
-
-    @Override
-    public boolean isNew() {
-        return id == null;
     }
 
 }

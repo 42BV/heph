@@ -7,13 +7,20 @@ import nl._42.heph.AbstractBuildCommand;
 import nl._42.heph.AbstractBuilder;
 import nl._42.heph.BuilderConstructors;
 import nl._42.heph.domain.Organization;
+import nl._42.heph.domain.OrganizationRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Component;
 
+@Component
 public class OrganizationBuilder extends AbstractBuilder<Organization, OrganizationBuilder.OrganizationBuildCommand> {
 
     public static final Long EXPECTED_ID        = 42L;
     public static final String EXPECTED_NAME    = "42BV";
+
+    @Autowired
+    private OrganizationRepository organizationRepository;
 
     @Override
     public BuilderConstructors<Organization, OrganizationBuildCommand> constructors() {
@@ -54,12 +61,12 @@ public class OrganizationBuilder extends AbstractBuilder<Organization, Organizat
 
         @Override
         protected JpaRepository<Organization, ? extends Serializable> getRepository() {
-            return null;
+            return organizationRepository;
         }
 
         @Override
         protected Organization findEntity(Organization entity) {
-            return null;
+            return organizationRepository.findByName(entity.getName());
         }
 
         public OrganizationBuildCommand withId(Long id) {
