@@ -1,10 +1,10 @@
 package nl._42.heph.builder;
 
-import static nl._42.heph.builder.PersonBuilder.EXPECTED_NAME;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import nl._42.heph.domain.Organization;
 import nl._42.heph.domain.OrganizationRepository;
@@ -49,12 +49,20 @@ public class PersonBuilderTest extends AbstractSpringTest {
     }
 
     @Test
+    public void createWithoutSpringContext() {
+        assertCreationWithoutSpringContext(new PersonBuilder().base()::create);
+    }
+
+    @Test
     public void constructWithoutSpringContext() {
+        assertCreationWithoutSpringContext(new PersonBuilder().base()::construct);
+    }
+
+    private void assertCreationWithoutSpringContext(Supplier<Person> personSupplier) {
         // Note that this test requires the OrganizationBuilder
         // in PersonBuilder to be manually constructed as well,
         // besides being @Autowired.
-        PersonBuilder personBuilder = new PersonBuilder();
-        Person person = personBuilder.sjaak();
+        Person person = personSupplier.get();
         assertEquals(PersonBuilder.EXPECTED_NAME, person.getName());
         assertEquals(OrganizationBuilder.EXPECTED_NAME, person.getOrganization().getName());
     }

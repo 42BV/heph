@@ -22,9 +22,8 @@ public class PersonRepositoryTest extends AbstractSpringTest {
         Person person = new Person();
         person.setName("Henk");
         personRepository.save(person);
-        Optional<Person> retrievedPerson = personRepository.findById(person.getId());
-        assertTrue(retrievedPerson.isPresent());
-        assertEquals(person.getName(), retrievedPerson.get().getName());
+        Person retrievedPerson = personRepository.findOne(person.getId());
+        assertEquals(person.getName(), retrievedPerson.getName());
     }
 
 }

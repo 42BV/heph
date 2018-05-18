@@ -12,6 +12,7 @@ public class Person extends AbstractEntity {
     private Organization organization;
     private Long organizationId;
     private String name;
+    private Long workspaceId;
 
     public Organization getOrganization() {
         return organization;
@@ -27,6 +28,14 @@ public class Person extends AbstractEntity {
 
     public void setOrganizationId(Long organizationId) {
         this.organizationId = organizationId;
+    }
+
+    public Long getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public void setWorkspaceId(Long workspaceId) {
+        this.workspaceId = workspaceId;
     }
 
     public String getName() {

@@ -3,7 +3,7 @@
 
     <groupId>nl.42</groupId>
     <artifactId>heph</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
     <packaging>jar</packaging>
     <name>42 Heph</name>
     <description>Library for creating smart test-data builders. Name is short for Hephaestus</description>
@@ -67,52 +67,30 @@
             <version>1.39</version>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
             <groupId>io.beanmapper</groupId>
             <artifactId>beanmapper</artifactId>
             <version>2.4.0</version>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-jpa</artifactId>
-            <version>2.0.7.RELEASE</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>1.4.3.RELEASE</version>
             <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>spring-aop</artifactId>
-                    <groupId>org.springframework</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- Used for unit testing -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>1.5.6.RELEASE</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>5.0.6.RELEASE</version>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>1.4.3.RELEASE</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>1.4.196</version>
-            <scope>runtime</scope>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>nl.42</groupId>
