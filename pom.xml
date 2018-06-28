@@ -41,6 +41,12 @@
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <!-- Dependencies -->
+        <beanmapper.version>2.4.1</beanmapper.version>
+        <database.truncator.version>0.5.1.SPRING5</database.truncator.version>
+        <h2database.version>1.4.196</h2database.version>
+        <spring.boot.version>2.0.3.RELEASE</spring.boot.version>
+
         <slf4j.version>1.7.2</slf4j.version>
         <!-- Reporting -->
         <maven.cobertura.version>2.4</maven.cobertura.version>
@@ -72,32 +78,32 @@
         <dependency>
             <groupId>io.beanmapper</groupId>
             <artifactId>beanmapper</artifactId>
-            <version>2.4.0</version>
+            <version>${beanmapper.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>1.4.3.RELEASE</version>
+            <version>${spring.boot.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>1.4.3.RELEASE</version>
+            <version>${spring.boot.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>1.4.196</version>
+            <version>${h2database.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>nl.42</groupId>
             <artifactId>database-truncator</artifactId>
-            <version>0.5.1</version>
+            <version>${database.truncator.version}</version>
             <scope>test</scope>
         </dependency>
 
