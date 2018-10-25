@@ -3,7 +3,7 @@
 
     <groupId>nl.42</groupId>
     <artifactId>heph</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>42 Heph</name>
     <description>Library for creating smart test-data builders. Name is short for Hephaestus</description>
@@ -61,14 +61,6 @@
     </distributionManagement>
 
     <dependencies>
-
-        <dependency>
-            <!-- not test scope, because it needs to be available to the library -->
-            <groupId>org.jmockit</groupId>
-            <artifactId>jmockit</artifactId>
-            <version>1.39</version>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>io.beanmapper</groupId>
             <artifactId>beanmapper</artifactId>

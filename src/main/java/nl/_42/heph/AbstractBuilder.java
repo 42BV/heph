@@ -1,7 +1,8 @@
 package nl._42.heph;
 
+import java.lang.reflect.Field;
+
 import io.beanmapper.BeanMapper;
-import mockit.Deencapsulation;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Persistable;
@@ -91,8 +92,55 @@ public abstract class AbstractBuilder<T extends Persistable, BC extends Abstract
      */
     public BC copy(T entity) {
         T copy = beanMapper.map(entity, constructors().getEntityConstructor().get());
-        Deencapsulation.setField(copy, "id", null);
+        nullifyIdField(copy);
         return update(copy);
     }
 
+    /**
+     * Set the id field of the given entity to null.
+     * @param entity entity
+     */
+    private void nullifyIdField(T entity) {
+        Field field = findIdFieldInHierarchy(entity.getClass());
+        field.setAccessible(true);
+        try {
+            field.set(entity, null);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Could not modify id field. ", e);
+        }
+    }
+
+    /**
+     * Looks up the id field in the object hierarchy.
+     * This is done because getDeclaredFields only
+     * returns private fields of the exact class
+     * you're calling it on, but the id field may
+     * be arbitrary class levels deep. So we
+     * recurse until we find it or if we've reached
+     * Object.class and we know we're done.
+     *
+     * If it cannot be found in the hierarchy
+     * we throw an exception.
+     *
+     * @param entityClass class to start looking
+     * @return id field
+     */
+    private Field findIdFieldInHierarchy(Class<?> entityClass) {
+        try {
+            return entityClass.getDeclaredField("id");
+        } catch (NoSuchFieldException e) {
+            /*
+             * If we don't find the field we look
+             * further up the hierarchy, if we
+             * didn't reach object yet.
+             * If we did, we'll rethrow the exception.
+             */
+            Class<?> superClass = entityClass.getSuperclass();
+            if (superClass != Object.class) {
+                return findIdFieldInHierarchy(superClass);
+            } else {
+                throw new RuntimeException("Cannot find id field in the hierarchy.", e);
+            }
+        }
+    }
 }
