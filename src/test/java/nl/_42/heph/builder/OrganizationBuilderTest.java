@@ -2,6 +2,7 @@ package nl._42.heph.builder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 
 import java.util.List;
 
@@ -34,6 +35,17 @@ public class OrganizationBuilderTest extends AbstractSpringTest {
         List<Organization> organizations = organizationRepository.findAll();
         assertEquals(1, organizations.size());
         assertEquals(organization.getName(), organizations.get(0).getName());
+    }
+
+    @Test
+    public void copy() {
+        final String expectedName = "Fourty four";
+        Organization fortyTwo = organizationBuilder._42();
+        Organization fortyFour = organizationBuilder.copy(fortyTwo)
+                .withName(expectedName)
+                .create();
+        assertNotSame(fortyTwo.getId(), fortyFour.getId());
+        assertNotSame(fortyTwo.getName(), fortyFour.getName());
     }
 
 }

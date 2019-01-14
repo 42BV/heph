@@ -30,15 +30,6 @@ public class PersonBuilder extends AbstractBuilder<Person, PersonBuilder.PersonB
     private WorkspaceBuilder workspaceBuilder = new WorkspaceBuilder();
 
     @Override
-    public BuilderConstructors<Person, PersonBuildCommand> constructors() {
-        return new BuilderConstructors<>(
-                PersonBuildCommand::new,
-                PersonBuildCommand::new,
-                Person::new
-        );
-    }
-
-    @Override
     public PersonBuildCommand base() {
         return blank()
                 .withName(EXPECTED_NAME)
@@ -52,14 +43,6 @@ public class PersonBuilder extends AbstractBuilder<Person, PersonBuilder.PersonB
     }
 
     class PersonBuildCommand extends AbstractBuildCommand<Person> {
-
-        public PersonBuildCommand(Person entity) {
-            super(entity);
-        }
-
-        public PersonBuildCommand(Supplier<Person> entity) {
-            super(entity);
-        }
 
         @Override
         protected JpaRepository<Person, ? extends Serializable> getRepository() {

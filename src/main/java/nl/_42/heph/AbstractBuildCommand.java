@@ -66,7 +66,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public abstract class AbstractBuildCommand<T extends Persistable> {
 
     /** the entity which is wrapped by the BuildCommand */
-    private final T entity;
+    private T entity;
     /**
      * all the references which need to be resolved BEFORE a findEntity is executed, eg
      * when part of said method's parameters. Ie, early resolution.
@@ -78,7 +78,14 @@ public abstract class AbstractBuildCommand<T extends Persistable> {
      * if true, states that no attempt will be made to find an already existing entity.
      * This mode is enabled when a copy or update has been called.
      */
-    private final boolean updating;
+    private boolean updating;
+
+    /**
+     * Required constructor, gets called by reflection in AbstractBuilder when getConstructors() has not been overridden.
+     * (generateDefaultBuilderConstructors()).
+     */
+    public AbstractBuildCommand() {
+    }
 
     /**
      * Creates the BuildCommand by wrapping the entity. The entity supplied

@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+- Made the BuilderConstructors optional. Builders no longer have to override the method `constructors()` 
+and BuildCommands no longer need 2 constructors (with Entity and Supplier<Entity>).
 
 ## [0.1.1] - 2018-05-18
 ### Fixed
