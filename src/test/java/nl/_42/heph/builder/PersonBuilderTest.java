@@ -3,9 +3,13 @@ package nl._42.heph.builder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.function.Supplier;
 
+import javax.persistence.EntityNotFoundException;
+
+import nl._42.heph.AbstractBuildCommand;
 import nl._42.heph.domain.Organization;
 import nl._42.heph.domain.OrganizationRepository;
 import nl._42.heph.domain.Person;
@@ -14,6 +18,7 @@ import nl._42.heph.shared.AbstractSpringTest;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public class PersonBuilderTest extends AbstractSpringTest {
 
