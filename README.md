@@ -3,7 +3,8 @@
 [![BCH compliance](https://bettercodehub.com/edge/badge/42BV/heph?branch=master)](https://bettercodehub.com/)
 [![codecov](https://codecov.io/gh/42BV/heph/branch/master/graph/badge.svg)](https://codecov.io/gh/42BV/heph)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.heph/heph/badge.svg)](https://maven-badges.herokuapp.com/maven-central/nl.42/heph)
-[![Javadocs](https://www.javadoc.io/badge/io.heph/heph.svg)](https://www.javadoc.io/doc/nl.42/heph)
+[![Javadocs](http://javadoc.io/badge/nl.42/heph.svg)](http://javadoc.io/doc/nl.42/heph)
+
 [![Apache 2](http://img.shields.io/badge/license-Apache%202-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 # Heph
