@@ -1,5 +1,6 @@
 package nl._42.heph;
 
+import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.function.Function;
@@ -10,8 +11,11 @@ import io.beanmapper.BeanMapper;
 import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.data.domain.Persistable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.support.Repositories;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -44,6 +48,12 @@ public abstract class AbstractBuilder<T extends Persistable, BC extends Abstract
      */
     @Autowired
     private BeanMapper beanMapper;
+
+    /**
+     * ApplicationContext is used to automatically assign a repository when the constructors() function is invoked for the first time.
+     */
+    @Autowired
+    private ApplicationContext applicationContext;
 
     /**
      * Method which provides the three constructors; i) constructor for the BuildCommand
@@ -212,7 +222,7 @@ public abstract class AbstractBuilder<T extends Persistable, BC extends Abstract
                 buildCommand = (BC) BeanUtils.instantiateClass(innerClassConstructor, this);
             } catch (NoSuchMethodException e2) {
                 // If the buildCommand cannot be instantiated as regular class or as inner class, throw an exception.
-                throw new BeanInstantiationException(buildCommandClass, "A no-args constructor is required!");
+                throw new BeanInstantiationException(buildCommandClass, "The class may not be private and a no-args constructor (present by default) is required!");
             }
         }
 
@@ -227,6 +237,29 @@ public abstract class AbstractBuilder<T extends Persistable, BC extends Abstract
         ReflectionUtils.setField(entityField, buildCommand, entity);
         ReflectionUtils.setField(updatingField, buildCommand, !entity.isNew());
 
+        // Assign a function to lookup the repository to the buildCommand (if available), so the repository can be set on-demand
+        Field repositorySupplierField = ReflectionUtils.findField(buildCommandClass, "repositorySupplier");
+        Assert.isTrue(repositorySupplierField != null, "BuildCommand class or its superclass does not contain the required field 'repositorySupplier'");
+        repositorySupplierField.setAccessible(true);
+        ReflectionUtils.setField(repositorySupplierField, buildCommand, buildRepositorySupplyingFunction(entity));
+
         return buildCommand;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Supplier<JpaRepository<T, ? extends Serializable>> buildRepositorySupplyingFunction(T entity) {
+        return () -> {
+            if (applicationContext == null) {
+                return null;
+            }
+
+            Repositories repositories = new Repositories(applicationContext);
+
+            if (repositories.hasRepositoryFor(entity.getClass())) {
+                return (JpaRepository<T, ? extends Serializable>) repositories.getRepositoryFor(entity.getClass()).orElse(null);
+            }
+
+            return null;
+        };
     }
 }

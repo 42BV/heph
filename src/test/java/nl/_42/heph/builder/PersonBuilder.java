@@ -1,11 +1,8 @@
 package nl._42.heph.builder;
-
-import java.io.Serializable;
 import java.util.function.Supplier;
 
 import nl._42.heph.AbstractBuildCommand;
 import nl._42.heph.AbstractBuilder;
-import nl._42.heph.BuilderConstructors;
 import nl._42.heph.LazyEntityId;
 import nl._42.heph.LazyEntityReference;
 import nl._42.heph.domain.Organization;
@@ -14,7 +11,6 @@ import nl._42.heph.domain.PersonRepository;
 import nl._42.heph.domain.Workspace;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -43,11 +39,6 @@ public class PersonBuilder extends AbstractBuilder<Person, PersonBuilder.PersonB
     }
 
     class PersonBuildCommand extends AbstractBuildCommand<Person> {
-
-        @Override
-        protected JpaRepository<Person, ? extends Serializable> getRepository() {
-            return personRepository;
-        }
 
         @Override
         protected Person findEntity(Person entity) {
