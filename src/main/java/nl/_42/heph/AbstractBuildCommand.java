@@ -5,8 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.springframework.core.GenericTypeResolver;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.support.Repositories;
+import org.springframework.util.Assert;
 
 /**
  * <p>
@@ -67,6 +70,17 @@ public abstract class AbstractBuildCommand<T extends Persistable> {
 
     /** the entity which is wrapped by the BuildCommand */
     private T entity;
+
+    /**
+     * This field contains a supplier function to retrieve a default repository for this BuildCommand.
+     * The reason a supplier function is used is that we only want to retrieve a default repository if the {@link #getRepository()} method was not overridden.
+     * Note: This field is set using reflection in {@link AbstractBuilder#buildRepositorySupplyingFunction(Persistable)}
+     */
+    private Supplier<JpaRepository<T, ? extends Serializable>> repositorySupplier;
+
+    /** Once we have looked up the default repository, we store it here to prevent having to lookup the repository every time it is accessed */
+    private JpaRepository<T, ? extends Serializable> repository;
+
     /**
      * all the references which need to be resolved BEFORE a findEntity is executed, eg
      * when part of said method's parameters. Ie, early resolution.
@@ -85,6 +99,7 @@ public abstract class AbstractBuildCommand<T extends Persistable> {
      * (generateDefaultBuilderConstructors()).
      */
     public AbstractBuildCommand() {
+        this.repositorySupplier = () -> null;
     }
 
     /**
@@ -96,6 +111,7 @@ public abstract class AbstractBuildCommand<T extends Persistable> {
     public AbstractBuildCommand(T entity) {
         this.entity = entity;
         this.updating = !entity.isNew();
+        this.repositorySupplier = () -> null;
     }
 
     /**
@@ -104,6 +120,7 @@ public abstract class AbstractBuildCommand<T extends Persistable> {
      */
     public AbstractBuildCommand(Supplier<T> entity) {
         this(entity.get());
+        this.repositorySupplier = () -> null;
     }
 
     /**
@@ -170,10 +187,19 @@ public abstract class AbstractBuildCommand<T extends Persistable> {
     }
 
     /**
-     * An extending class must supply the repository for the Entity
+     * Provides the repository for the Entity.
+     * By default, this is the repository registered to Spring (see {@link Repositories#getRepositoryFor(Class)}).
+     * An extending class may override this method to set a custom repository for the Entity
      * @return the repository for the entity
      */
-    protected abstract JpaRepository<T, ? extends Serializable> getRepository();
+    protected JpaRepository<T, ? extends Serializable> getRepository() {
+        if (repository == null && repositorySupplier != null) {
+            repository = repositorySupplier.get();
+            repositorySupplier = null; // Remove the supplier function to prevent it getting called multiple times when requesting a repository while there is none.
+        }
+
+        return repository;
+    }
 
     /**
      * Method that may be overridden by an extending class to supply extra logic BEFORE
