@@ -3,21 +3,29 @@ package nl._42.heph;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.Serializable;
-import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
+import nl._42.heph.builder.MockSavedEntity;
+import nl._42.heph.builder.MockSavedEntityBuildCommand;
+import nl._42.heph.builder.MockSavedEntityFixtures;
+import nl._42.heph.builder.MockSavedEntityRepository;
+import nl._42.heph.builder.PersonBuildCommand;
+import nl._42.heph.builder.PersonFixtures;
+import nl._42.heph.builder.PersonFixturesRepository;
+import nl._42.heph.builder.UnsavableEntity;
+import nl._42.heph.builder.UnsavableEntityBuildCommand;
+import nl._42.heph.builder.UnsavableEntityFixtures;
+import nl._42.heph.builder.WrongRepositoryPersonFixtures;
 import nl._42.heph.domain.Person;
 import nl._42.heph.shared.AbstractSpringTest;
 
 import org.junit.Test;
-import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.domain.Persistable;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.util.ReflectionUtils;
 
 public class AbstractBuilderTest extends AbstractSpringTest {
@@ -25,187 +33,121 @@ public class AbstractBuilderTest extends AbstractSpringTest {
     @Autowired
     private ApplicationContext applicationContext;
 
-    /**
-     * Test if the generation of default builderConstructors fails if we only provide a custom constructor in our buildCommand and not override the
-     * {@link AbstractBuilder#constructors()} method in the {@link AbstractBuilder} implementation.
-     */
     @Test
-    public void generateDefaultBuilderConstructors_shouldThrowError_becauseNoDefaultConstructorIsAvailable() {
-
-        AbstractBuilder<MyEntity, MyBuildCommand> myBuilder = new AbstractBuilder<MyEntity, MyBuildCommand>() {
-            @Override
-            public MyBuildCommand base() {
-                return new MyBuildCommand(42L);
-            }
-        };
-
-        try {
-            BuilderConstructors<MyEntity, MyBuildCommand> builderConstructors = myBuilder.constructors();
-            builderConstructors.getConstructorTakingEntity().apply(new MyEntity(44L));
-            fail("Expected BeanInstantiationException was not thrown");
-        } catch (BeanInstantiationException e) {
-            assertEquals("Failed to instantiate [nl._42.heph.AbstractBuilderTest$MyBuildCommand]: The class may not be private and a no-args constructor (present by default) is required!", e.getMessage());
-        }
-
-        try {
-            BuilderConstructors<MyEntity, MyBuildCommand> builderConstructors = myBuilder.constructors();
-            builderConstructors.getConstructorTakingSupplier().apply(() -> new MyEntity(42L));
-            fail("Expected BeanInstantiationException was not thrown");
-        } catch (BeanInstantiationException e) {
-            assertEquals("Failed to instantiate [nl._42.heph.AbstractBuilderTest$MyBuildCommand]: The class may not be private and a no-args constructor (present by default) is required!", e.getMessage());
-        }
-
-        try {
-            BuilderConstructors<MyEntity, MyBuildCommand> builderConstructors = myBuilder.constructors();
-            builderConstructors.getEntityConstructor().get();
-            fail("Expected BeanInstantiationException was not thrown");
-        } catch (BeanInstantiationException e) {
-            assertTrue(e.getMessage().contains("Failed to instantiate [nl._42.heph.AbstractBuilderTest$MyEntity]: No default constructor found;"));
-        }
-
-    }
-
-
-    /**
-     * Test if the usage of custom builderConstructors works as intended for a class of which no default BuilderConstructors can be generated.
-     */
-    @Test
-    public void generateDefaultBuilderConstructors_shouldWorkCorrectly_becauseCustomConstructorsAreSpecified() {
-
-        AbstractBuilder<MyEntity, MyBuildCommand> myBuilder = new AbstractBuilder<MyEntity, MyBuildCommand>() {
-            @Override
-            public MyBuildCommand base() {
-                return new MyBuildCommand(42L);
-            }
-
-            @Override
-            public BuilderConstructors<MyEntity, MyBuildCommand> constructors() {
-                return new BuilderConstructors<>((e -> new MyBuildCommand(e.getId())), (e -> new MyBuildCommand(e.get().getId())), () -> new MyEntity(48L));
-            }
-        };
-
-        BuilderConstructors<MyEntity, MyBuildCommand> builderConstructors = myBuilder.constructors();
-
-        assertEquals(42L, builderConstructors.getConstructorTakingEntity().apply(new MyEntity(42L)).myLong, 0L);
-        assertEquals(45L, builderConstructors.getConstructorTakingSupplier().apply(() -> new MyEntity(45L)).myLong, 0L);
-        assertEquals(48L, builderConstructors.getEntityConstructor().get().getId(), 0);
-
-    }
-
-    @Test
-    public void generateRepositorySupplierFunction_repositoryAvailable_shouldReturnRepositoryAndUnsetLookupFunction() {
-
-        TestPersonBuilder myBuilder = new TestPersonBuilder();
-        applicationContext.getAutowireCapableBeanFactory().autowireBean(myBuilder);
+    @SuppressWarnings({ "unchecked" })
+    public void generateRepositorySupplier_jpaRepositoryAvailable_shouldReturnRepositoryAndUnsetLookupFunction() throws Throwable {
+        PersonFixtures personFixtures = new PersonFixtures();
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(personFixtures);
 
         // Test if a repository lookup function has been generated
-        TestPersonBuilder.TestPersonBuildCommand testPersonBuildCommand = myBuilder.constructors().getConstructorTakingEntity().apply(new Person());
+        Method constructorsMethod = ReflectionUtils.findMethod(AbstractBuilder.class, "constructors");
+        assertNotNull(constructorsMethod);
+        ReflectionUtils.makeAccessible(constructorsMethod);
 
-        Field repositorySupplierField = ReflectionUtils.findField(MyBuildCommand.class, "repositorySupplier");
-        assertNotNull(repositorySupplierField);
+        BuilderConstructors<Person, PersonBuildCommand> constructors = (BuilderConstructors<Person, PersonBuildCommand>) ReflectionUtils.invokeMethod(constructorsMethod, personFixtures);
+        assertNotNull(constructors);
+        PersonBuildCommand personBuildCommand = constructors.getConstructorTakingEntity().apply(new Person());
 
-        repositorySupplierField.setAccessible(true);
+        Method getRepositorySupplierMethod = ReflectionUtils.findMethod(DefaultBuildCommand.class, "getRepositorySupplier");
+        assertNotNull(getRepositorySupplierMethod);
+        ReflectionUtils.makeAccessible(getRepositorySupplierMethod);
 
-        assertNotNull(ReflectionUtils.getField(repositorySupplierField, testPersonBuildCommand));
+        InvocationHandler handler = Proxy.getInvocationHandler(personBuildCommand);
+        assertNotNull(handler.invoke(personBuildCommand, getRepositorySupplierMethod, new Object[0]));
 
-        // There is a repository for 'MyEntity'. The call to getRepository() should return the repository and remove the repository lookup function from this instance of MyBuildCommand
-        JpaRepository<Person, ? extends Serializable> repository = testPersonBuildCommand.getRepository();
+        // There is a repository for 'Person'. The call to getRepository() should return the repository and remove the repository lookup function from this instance of PersonBuildCommand
+        PersonFixturesRepository repository = personBuildCommand.getRepository();
         assertNotNull(repository);
         assertEquals(0, repository.findAll().size());
 
-        myBuilder.base().create();
+        personFixtures.base().create();
         assertEquals(1, repository.findAll().size());
 
-        assertNull(ReflectionUtils.getField(repositorySupplierField, testPersonBuildCommand));
 
         // Even without lookup function it should still return the repository.
-        assertEquals(repository, testPersonBuildCommand.getRepository());
+        assertNull(handler.invoke(personBuildCommand, getRepositorySupplierMethod, new Object[0]));
+        assertEquals(repository, personBuildCommand.getRepository());
     }
 
     @Test
-    public void generateRepositorySupplierFunction_noRepositoryAvailable_shouldReturnNullAndUnsetLookupFunction() {
-        AbstractBuilder<MyEntity, MyBuildCommand> myBuilder = new AbstractBuilder<MyEntity, MyBuildCommand>() {
-
-            @Override
-            public MyBuildCommand base() {
-                return new MyBuildCommand(42L);
-            }
-
-            // Required to override, as myBuildCommand does not have the required no-args constructor to auto-generate BuilderConstructors with.
-            @Override
-            public BuilderConstructors<MyEntity, MyBuildCommand> constructors() {
-                return new BuilderConstructors<>((e -> new MyBuildCommand(e.getId())), (e -> new MyBuildCommand(e.get().getId())), () -> new MyEntity(48L));
-            }
-        };
+    @SuppressWarnings({ "unchecked" })
+    public void generateRepositorySupplier_beanSaverAvailable_shouldReturnRepositoryAndUnsetLookupFunction() throws Throwable {
+        MockSavedEntityFixtures mockSavedEntityFixtures = new MockSavedEntityFixtures();
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(mockSavedEntityFixtures);
 
         // Test if a repository lookup function has been generated
-        MyBuildCommand myBuildCommand = myBuilder.constructors().getConstructorTakingEntity().apply(new MyEntity(42L));
+        Method constructorsMethod = ReflectionUtils.findMethod(AbstractBuilder.class, "constructors");
+        assertNotNull(constructorsMethod);
+        ReflectionUtils.makeAccessible(constructorsMethod);
 
-        Field repositorySupplierField = ReflectionUtils.findField(MyBuildCommand.class, "repositorySupplier");
-        assertNotNull(repositorySupplierField);
+        BuilderConstructors<MockSavedEntity, MockSavedEntityBuildCommand> constructors = (BuilderConstructors<MockSavedEntity, MockSavedEntityBuildCommand>) ReflectionUtils.invokeMethod(constructorsMethod, mockSavedEntityFixtures);
+        assertNotNull(constructors);
+        MockSavedEntityBuildCommand mockSavedEntityBuildCommand = constructors.getConstructorTakingEntity().apply(new MockSavedEntity());
 
-        repositorySupplierField.setAccessible(true);
+        Method getRepositorySupplierMethod = ReflectionUtils.findMethod(DefaultBuildCommand.class, "getRepositorySupplier");
+        assertNotNull(getRepositorySupplierMethod);
+        ReflectionUtils.makeAccessible(getRepositorySupplierMethod);
 
-        assertNotNull(ReflectionUtils.getField(repositorySupplierField, myBuildCommand));
+        InvocationHandler handler = Proxy.getInvocationHandler(mockSavedEntityBuildCommand);
+        assertNotNull(handler.invoke(mockSavedEntityBuildCommand, getRepositorySupplierMethod, new Object[0]));
 
-        // There is no repository for 'MyEntity'. The call to getRepository() should return null and remove the repository lookup function from this instance of MyBuildCommand
-        assertNull(myBuildCommand.getRepository());
-        assertNull(ReflectionUtils.getField(repositorySupplierField, myBuildCommand));
+        // There is a repository for 'Person'. The call to getRepository() should return the repository and remove the repository lookup function from this instance of PersonBuildCommand
+        MockSavedEntityRepository repository = mockSavedEntityBuildCommand.getRepository();
+        assertNotNull(repository);
+        assertEquals(0, repository.findAll().size());
+
+        mockSavedEntityFixtures.base().create();
+        assertEquals(1, repository.findAll().size());
+
+
+        // Even without lookup function it should still return the repository.
+        assertNull(handler.invoke(mockSavedEntityBuildCommand, getRepositorySupplierMethod, new Object[0]));
+        assertEquals(repository, mockSavedEntityBuildCommand.getRepository());
+    }
+
+    @Test
+    @SuppressWarnings({ "unchecked" })
+    public void generateRepositorySupplier_noRepositoryAvailable_shouldReturnNullAndUnsetLookupFunction() throws Throwable {
+        // Test if a repository lookup function has been generated
+        UnsavableEntityFixtures unsavableEntityFixtures = new UnsavableEntityFixtures();
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(unsavableEntityFixtures);
+
+        Method constructorsMethod = ReflectionUtils.findMethod(AbstractBuilder.class, "constructors");
+        assertNotNull(constructorsMethod);
+        ReflectionUtils.makeAccessible(constructorsMethod);
+
+        BuilderConstructors<UnsavableEntity, UnsavableEntityBuildCommand> constructors = (BuilderConstructors<UnsavableEntity, UnsavableEntityBuildCommand>) ReflectionUtils.invokeMethod(constructorsMethod, unsavableEntityFixtures);
+        assertNotNull(constructors);
+
+        UnsavableEntityBuildCommand unsavableEntityBuildCommand = constructors.getConstructorTakingEntity().apply(new UnsavableEntity());
+
+        Method getRepositorySupplierMethod = ReflectionUtils.findMethod(DefaultBuildCommand.class, "getRepositorySupplier");
+        assertNotNull(getRepositorySupplierMethod);
+        ReflectionUtils.makeAccessible(getRepositorySupplierMethod);
+
+
+        InvocationHandler handler = Proxy.getInvocationHandler(unsavableEntityBuildCommand);
+        assertNotNull(handler.invoke(unsavableEntityBuildCommand, getRepositorySupplierMethod, new Object[0]));
+
+        // There is no repository for 'UnsavableEntity'. The call to getRepository() should return null and remove the repository lookup function from this instance of UnsavableEntityBuildCommand
+        assertNull(unsavableEntityBuildCommand.getRepository());
+        assertNull(handler.invoke(unsavableEntityBuildCommand, getRepositorySupplierMethod, new Object[0]));
 
         // Even without lookup function it should still return null.
-        assertNull(myBuildCommand.getRepository());
+        assertNull(unsavableEntityBuildCommand.getRepository());
     }
 
-    private class MyEntity implements Persistable<Long> {
+    @Test
+    @SuppressWarnings({ "unchecked", "ConstantConditions" })
+    public void generateRepositorySupplier_multipleRepositoriesAvailable_wrongRepositoryReferenced_shouldThrowErrorAndAbort() {
+        WrongRepositoryPersonFixtures wrongRepositoryPersonFixtures = new WrongRepositoryPersonFixtures();
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(wrongRepositoryPersonFixtures);
 
-        private final Long id;
-
-        private MyEntity(Long id) {
-            this.id = id;
-        }
-
-        @Override
-        public Long getId() {
-            return id;
-        }
-
-        @Override
-        public boolean isNew() {
-            return id != null;
+        try {
+            wrongRepositoryPersonFixtures.base().create();
+            fail("Expected MultipleRepositoriesExistException was not thrown");
+        } catch (MultipleRepositoriesExistException e) {
+            assertEquals("Multiple repositories of (or extending) the type [nl._42.heph.domain.PersonRepository] were found. Please specify the repository with the most specific type or remove the duplicate repository", e.getMessage());
         }
     }
-
-    private class MyBuildCommand extends AbstractBuildCommand<MyEntity> {
-
-        private final Long myLong;
-
-        // This prevents a default construction from being available and should throw an error when generating the default builderConstructors
-        private MyBuildCommand(Long myLong) {
-            this.myLong = myLong;
-        }
-
-        @Override
-        protected MyEntity findEntity(MyEntity entity) {
-            return entity;
-        }
-    }
-
-    // Test / mock version of PersonBuilder which always saves entities to the database.
-    private class TestPersonBuilder extends AbstractBuilder<Person, TestPersonBuilder.TestPersonBuildCommand> {
-
-        @Override
-        public TestPersonBuildCommand base() {
-            return blank();
-        }
-
-        class TestPersonBuildCommand extends AbstractBuildCommand<Person> {
-
-            @Override
-            protected Person findEntity(Person entity) {
-                return null; // Force repository to save new entity.
-            }
-        }
-    }
-
-
 }

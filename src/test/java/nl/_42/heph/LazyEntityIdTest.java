@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import nl._42.heph.domain.Organization;
 import nl._42.heph.domain.Person;
+import nl._42.heph.lazy.LazyEntityId;
 
 import org.junit.Test;
 

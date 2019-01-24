@@ -5,8 +5,25 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-- Made the BuilderConstructors optional. Builders no longer have to override the method `constructors()` 
-and BuildCommands no longer need 2 constructors (with Entity and Supplier<Entity>).
+### Added
+This version makes the usage of Heph much easier by offering auto-generated implementations of the value setter methods within your BuildCommands.
+
+### BREAKING changes
+Builder classes now have to be declared as `interfaces` extending `AbstractBuildCommand<Entity, Repository>` and need to be placed in their own source file
+
+To convert your existing builders, perform the following steps:
+- Move the `BuildCommand` of your builder to its own source file (if it was an inner class). 
+- Make the `BuildCommand` an interface extending `AbstractBuildCommand<Entity, Repository>`. This means you must add the type of your repository.
+  - If your entity does *not* have a Spring / BeanSaver-implementing repository, change the second parameter of `AbstractBuildCommand` to `NoOpBeanSaver`.
+- Remove all constructors and the `getRepository()` method from your BuildCommand interface
+- Make the overridden `findEntity` method `default` and use `getRepository()` to find your entity using the repository.
+- Make all other methods in your BuildCommand `default`
+  - If any of these methods is named `with<something>` and just sets a value to your `Entity`, you should try removing the body to unleash the true power of Heph
+- Rename the imports of `nl._42.heph.LazyEntity` and its derivatives to `nl._42.heph.lazy.LazyEntity`
+- Replace all variables (like lists of stored values or callbacks) with calls to `getValue(TAG)` and `putValue(TAG, value)`. 
+  - This is required, because Java interfaces can only contain static variables, and we want to store our values within the instance of the buildCommand.
+- If no longer needed, remove the `autowired` Repository from your `Builder` class. 
+  - The `Builder` class should still implement the `base` method and is supposed to contain your fixtures. 
 
 ## [0.1.1] - 2018-05-18
 ### Fixed

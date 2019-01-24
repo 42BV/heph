@@ -1,4 +1,4 @@
-package nl._42.heph;
+package nl._42.heph.lazy;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
