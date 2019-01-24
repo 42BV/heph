@@ -1,4 +1,4 @@
-package nl._42.heph;
+package nl._42.heph.lazy;
 
 /**
  * Consists of a triplet with a getter, setter and supplier. The getter is called

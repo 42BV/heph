@@ -2,14 +2,15 @@ package nl._42.heph;
 
 import static org.junit.Assert.assertEquals;
 
-import nl._42.heph.builder.OrganizationBuilder;
+import nl._42.heph.builder.OrganizationFixtures;
 import nl._42.heph.domain.Person;
+import nl._42.heph.lazy.LazyEntityReference;
 
 import org.junit.Test;
 
 public class LazyEntityReferenceTest {
 
-    private OrganizationBuilder organizationBuilder = new OrganizationBuilder();
+    private OrganizationFixtures organizationFixtures = new OrganizationFixtures();
 
     @Test
     public void setReference() {
@@ -17,44 +18,44 @@ public class LazyEntityReferenceTest {
         LazyEntityReference lazyEntityReference = new LazyEntityReference<>(
                 person::getOrganization,
                 person::setOrganization,
-                organizationBuilder::_42);
+                organizationFixtures::_42);
 
         lazyEntityReference.resolve();
-        assertEquals(organizationBuilder._42().getName(), person.getOrganization().getName());
+        assertEquals(organizationFixtures._42().getName(), person.getOrganization().getName());
     }
 
     @Test
     public void valueAlreadySet_mayNotBeOverwritten() {
         Person person = new Person();
-        person.setOrganization(organizationBuilder._42());
+        person.setOrganization(organizationFixtures._42());
 
         LazyEntityReference lazyEntityReference = new LazyEntityReference<>(
                 person::getOrganization,
                 person::setOrganization,
-                organizationBuilder::apple);
+                organizationFixtures::apple);
 
         lazyEntityReference.resolve();
-        assertEquals(organizationBuilder._42().getName(), person.getOrganization().getName());
+        assertEquals(organizationFixtures._42().getName(), person.getOrganization().getName());
     }
 
     @Test
     public void illegalGetterPassed_mustWrite() {
         Person person = new Person();
-        person.setOrganization(organizationBuilder._42());
+        person.setOrganization(organizationFixtures._42());
 
         LazyEntityReference lazyEntityReference = new LazyEntityReference<>(
                 null,
                 person::setOrganization,
-                organizationBuilder::apple);
+                organizationFixtures::apple);
 
         lazyEntityReference.resolve();
-        assertEquals(organizationBuilder.apple().getName(), person.getOrganization().getName());
+        assertEquals(organizationFixtures.apple().getName(), person.getOrganization().getName());
     }
 
     @Test
     public void nullReference_mustNotWrite() {
         Person person = new Person();
-        person.setOrganization(organizationBuilder._42());
+        person.setOrganization(organizationFixtures._42());
 
         LazyEntityReference lazyEntityReference = new LazyEntityReference<>(
                 person::getOrganization,
@@ -62,7 +63,7 @@ public class LazyEntityReferenceTest {
                 null);
 
         lazyEntityReference.resolve();
-        assertEquals(organizationBuilder._42().getName(), person.getOrganization().getName());
+        assertEquals(organizationFixtures._42().getName(), person.getOrganization().getName());
     }
 
 }

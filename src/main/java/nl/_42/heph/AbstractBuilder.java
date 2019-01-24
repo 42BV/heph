@@ -1,23 +1,41 @@
 package nl._42.heph;
 
+import static java.lang.String.format;
+
 import java.io.Serializable;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import io.beanmapper.BeanMapper;
+import nl._42.heph.generation.BuildCommandAdvice;
+import nl._42.heph.generation.BuildCommandPointcut;
 
-import org.springframework.beans.BeanInstantiationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.aop.support.DefaultPointcutAdvisor;
+import org.springframework.aop.target.SingletonTargetSource;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.proxy.Enhancer;
+import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.data.domain.Persistable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.support.Repositories;
+import org.springframework.data.repository.Repository;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StopWatch;
 
 /**
  * <p>
@@ -39,7 +57,16 @@ import org.springframework.util.ReflectionUtils;
  */
 public abstract class AbstractBuilder<T extends Persistable, BC extends AbstractBuildCommand> {
 
-    private BuilderConstructors<T, BC> defaultBuilderConstructors;
+    /** The set of BuilderConstructors for this Builder */
+    private BuilderConstructors<T, BC> builderConstructors;
+
+    /** The set of methods of {@link AbstractBuildCommand} to redirect to a custom implementation (if overridden only) */
+    private static final List<Method> ABSTRACT_BUILD_COMMAND_METHODS = Arrays.asList(AbstractBuildCommand.class.getDeclaredMethods());
+
+    /** BuildCommand value storage key for proxy generation */
+    private static final String BC = "BC";
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractBuilder.class);
 
     /**
      * BeanMapper is used when the copy function is invoked. It will attempt to make a clear
@@ -60,16 +87,16 @@ public abstract class AbstractBuilder<T extends Persistable, BC extends Abstract
      * if copy/update is called, ii) constructor for the BuildCommand if blank/base is called
      * and iii) constructor for the entity.
      *
-     * If not overridden, a set of builderConstructors is generated automatically.
-     * See {@link #generateDefaultBuilderConstructors()} for more info on builder construction generation.
+     * A set of builderConstructors is generated once and then stored in this class.
+     * This happens in {@link #generateBuilderConstructors()}.
      * @return the instance containing the three constructor lambdas.
      */
-    public BuilderConstructors<T, BC> constructors() {
-        if (defaultBuilderConstructors ==  null) {
+    private BuilderConstructors<T, BC> constructors() {
+        if (builderConstructors ==  null) {
             // Lazily generate builderConstructors the first time they're needed.
-            defaultBuilderConstructors = generateDefaultBuilderConstructors();
+            builderConstructors = generateBuilderConstructors();
         }
-        return defaultBuilderConstructors;
+        return builderConstructors;
     }
 
     /**
@@ -174,15 +201,16 @@ public abstract class AbstractBuilder<T extends Persistable, BC extends Abstract
     }
 
     /**
-     * Generates a default pair of builder constructors.
-     * The constructor has three methods, which do the following:
+     * Generates an instance of builderConstructors suitable for the custom implementation of this class and its BuildCommand.
+     * The constructor set needs three methods, which do the following:
      * i) constructor for copy/update: Instantiates the buildCommand (using its no-args constructor) with the linked entity
      * ii) constructor for blank/base: Instantiates the buildCommand (using its no-args constructor) with the supplied entity
      * iii) constructor for the entity: Instantiates the entity (using its no-args constructor).
      * @return Builder constructor for the entity type and build command type of this class.
      */
     @SuppressWarnings("unchecked")
-    private BuilderConstructors<T, BC> generateDefaultBuilderConstructors() {
+    private BuilderConstructors<T, BC> generateBuilderConstructors() {
+        // We resolve the generic class types T and BC.
         Class<?>[] genericTypes = GenericTypeResolver.resolveTypeArguments(getClass(), AbstractBuilder.class);
         Assert.isTrue(genericTypes != null && genericTypes.length == 2, "The AbstractBuilder class must contain exactly two class-level generic types");
 
@@ -204,62 +232,95 @@ public abstract class AbstractBuilder<T extends Persistable, BC extends Abstract
     /**
      * Instantiates a BuildCommand given its class and an initial Entity
      * This is done by looking at the no-args constructor (either present in {@link AbstractBuildCommand} or overridden in your own BuildCommand)
-     * @param buildCommandClass Class of the BuildCommand to instantiate
-     * @param entity Entity to set within the "entity" field
+     * @param buildCommandClass Class of the custom BuildCommand interface to instantiate
+     * @param entity Entity to set within the "entity" field of the default BuildCommand implementation
      * @return Instantiated BuildCommand for the given Entity
      */
     @SuppressWarnings("unchecked")
     private BC instantiateBuildCommand(Class<?> buildCommandClass, T entity) {
-        BC buildCommand;
+        Object[] buildCommandReference = new Object[1];
 
-        try {
-            // If the buildCommand is a separate class (that is: not an inner class), directly instantiate it.
-            buildCommand = (BC) BeanUtils.instantiateClass(buildCommandClass);
-        } catch (BeanInstantiationException e) {
-            try {
-                // The buildCommand can be an inner class. In that case, look for the constructor taking its outer class as parameter.
-                Constructor innerClassConstructor = ReflectionUtils.accessibleConstructor(buildCommandClass, this.getClass());
-                buildCommand = (BC) BeanUtils.instantiateClass(innerClassConstructor, this);
-            } catch (NoSuchMethodException e2) {
-                // If the buildCommand cannot be instantiated as regular class or as inner class, throw an exception.
-                throw new BeanInstantiationException(buildCommandClass, "The class may not be private and a no-args constructor (present by default) is required!");
+        // We currently need two kinds of proxies to have a working BuildCommand:
+        // The 1st proxy (CGLib) is required to intercept all methods of the DefaultBuildCommandClass itself and redirect overridden methods to the BuildCommand interface of the user.
+        // The 2nd proxy (Spring AOP) is required to intercept the "with" methods of the custom BuildCommand interface created by the user.
+        Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(DefaultBuildCommand.class);
+        enhancer.setCallback((MethodInterceptor) (obj, method, args, proxy) -> {
+            // If any of the methods in DefaultBuildCommand is part of AbstractBuildCommand interface and has been overridden in the user's implementation,
+            // pass the call back to the AOP proxy instance so the actual implementation can be executed.
+            for (Method m : ABSTRACT_BUILD_COMMAND_METHODS) {
+                if (m.getName().equals(method.getName()) && m.getParameterCount() == method.getParameterCount() && m.getReturnType().equals(method.getReturnType())) {
+                    Method implementation = ReflectionUtils.findMethod(buildCommandClass, method.getName(), method.getParameterTypes());
+
+                    if (implementation != null && implementation.isDefault()) {
+                        return ReflectionUtils.invokeMethod(implementation, buildCommandReference[0], args);
+                    }
+                }
             }
-        }
 
-        // Once the command has been instantiated, place the entity and "updating" field inside it (this is what the overridable constructors also do).
-        Field entityField = ReflectionUtils.findField(buildCommandClass, "entity");
-        Field updatingField = ReflectionUtils.findField(buildCommandClass, "updating");
-        Assert.isTrue(entityField != null, "BuildCommand class or its superclass does not contain the required field 'entity'");
-        Assert.isTrue(updatingField != null, "BuildCommand class or its superclass does not contain the required field 'updating'");
-        entityField.setAccessible(true);
-        updatingField.setAccessible(true);
+            return proxy.invokeSuper(obj, args);
 
-        ReflectionUtils.setField(entityField, buildCommand, entity);
-        ReflectionUtils.setField(updatingField, buildCommand, !entity.isNew());
+        });
 
-        // Assign a function to lookup the repository to the buildCommand (if available), so the repository can be set on-demand
-        Field repositorySupplierField = ReflectionUtils.findField(buildCommandClass, "repositorySupplier");
-        Assert.isTrue(repositorySupplierField != null, "BuildCommand class or its superclass does not contain the required field 'repositorySupplier'");
-        repositorySupplierField.setAccessible(true);
-        ReflectionUtils.setField(repositorySupplierField, buildCommand, buildRepositorySupplyingFunction(entity));
+        Supplier<Repository<T, ? extends Serializable>> repositorySupplier = buildRepositorySupplier(buildCommandClass);
+        DefaultBuildCommand defaultBuildCommand = (DefaultBuildCommand) enhancer.create(new Class[] {Persistable.class, Supplier.class}, new Object[] {entity, repositorySupplier});
+
+        // At this stage, we have a reference buildCommand implementation which can forward calls to overridden methods in the user's implementation.
+        // However, it is not yet backed by the user's implementation.
+        // Below, we join it to the user's implementation, delegating all "with" methods to the "withValue" method of the base instance.
+        BuildCommandPointcut pointcut = new BuildCommandPointcut();
+        BuildCommandAdvice advice = new BuildCommandAdvice(defaultBuildCommand);
+        DefaultPointcutAdvisor advisor = new DefaultPointcutAdvisor(pointcut, advice);
+
+        ProxyFactory proxyFactory = new ProxyFactory();
+        proxyFactory.setTargetSource(new SingletonTargetSource(defaultBuildCommand));
+        proxyFactory.addInterface(buildCommandClass);
+        proxyFactory.addAdvisor(advisor);
+        BC buildCommand = (BC) proxyFactory.getProxy();
+        advice.setProxy(buildCommand);
+
+        // We need to store a reference to this buildCommand to redirect overridden methods called directly in DefaultBuildCommand to the user's implementation.
+        buildCommandReference[0] = buildCommand;
 
         return buildCommand;
     }
 
+    /**
+     * Constructs a {@link Supplier} which can return a JpaRepository for the given repository type in the buildCommand.
+     * If a Repository is available, it is returned when retrieving the value.
+     * If no Repository (or no Spring context) is available, the supplier function returns {@code null}.
+     * @param buildCommandClass Class of the buildCommand. This contains the generic type of the repository we are going to retrieve.
+     * @return Repository if it exists, or {@code null}
+     */
     @SuppressWarnings("unchecked")
-    private Supplier<JpaRepository<T, ? extends Serializable>> buildRepositorySupplyingFunction(T entity) {
+    private Supplier<Repository<T, ? extends Serializable>> buildRepositorySupplier(Class<?> buildCommandClass) {
         return () -> {
             if (applicationContext == null) {
                 return null;
             }
 
-            Repositories repositories = new Repositories(applicationContext);
+            // In most cases, the "Repositories" class is used to obtain a repository.
+            // However, you can have 2 repositories for the same entity: One in the production code, and another in the test code, containing a method to identify the uniqueness of the fixture.
+            // In some cases, the Repositories class returns the wrong repository type, so by using applicationContext.getBean we ensure the correct repository type is returned.
+            Class<?>[] buildCommandTypes = GenericTypeResolver.resolveTypeArguments(buildCommandClass, AbstractBuildCommand.class);
+            Assert.isTrue(buildCommandTypes != null && buildCommandTypes.length == 2, "The buildCommand class must have 2 generic types");
+            Class<?> repositoryType = buildCommandTypes[1];
 
-            if (repositories.hasRepositoryFor(entity.getClass())) {
-                return (JpaRepository<T, ? extends Serializable>) repositories.getRepositoryFor(entity.getClass()).orElse(null);
+            Repository<T, ? extends Serializable> repository = null;
+
+            try {
+                repository = (Repository<T, ? extends Serializable>) applicationContext.getBean(repositoryType);
+            } catch (NoUniqueBeanDefinitionException e) {
+                // Multiple repositories exist and a top-level repository was requested. In this case, the user needs to remove the duplicate repository or request the most-specific instance.
+                throw new MultipleRepositoriesExistException(format("Multiple repositories of (or extending) the type [%s] were found. Please specify the repository with the most specific type or remove the duplicate repository", repositoryType.getName()));
+            } catch (NoSuchBeanDefinitionException ignored) {
+                if (repositoryType != NoOpBeanSaver.class) {
+                    logger.info("Repository of the type [{}] could not be instantiated, continuing without persistence support...", repositoryType.getName());
+                }
+                // This should rarely happen if not using the NoOpBeanSaver, but it is possible if the repository is for example annotated with @NoRepositoryBean.
             }
 
-            return null;
+            return repository;
         };
     }
 }

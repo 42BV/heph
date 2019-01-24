@@ -1,4 +1,4 @@
-package nl._42.heph;
+package nl._42.heph.lazy;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -12,7 +12,7 @@ import org.springframework.data.domain.Persistable;
  * @param <T> classtype of the entity that is being resolved
  * @param <A> type for the entities that are stored by ID, in this case Long
  */
-public class LazyEntityId<T extends Persistable, A extends Long> extends AbstractLazyEntity<T,A> {
+public class LazyEntityId<T extends Persistable, A> extends AbstractLazyEntity<T,A> {
 
     public LazyEntityId(Supplier<A> getter, Consumer<A> setter, Supplier<T> reference) {
         super(getter, setter, reference);
@@ -24,8 +24,9 @@ public class LazyEntityId<T extends Persistable, A extends Long> extends Abstrac
      * @return the ID of the entity, a Long
      */
     @Override
+    @SuppressWarnings("unchecked")
     public A convertEntity(T entity) {
-        return (A)entity.getId();
+        return (A) entity.getId();
     }
 
 }
