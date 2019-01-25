@@ -16,7 +16,6 @@ import nl._42.heph.lazy.Resolve;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**

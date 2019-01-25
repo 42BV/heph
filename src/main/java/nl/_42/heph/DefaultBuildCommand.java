@@ -540,6 +540,7 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
         if (entityIdAnnotation != null) {
             return new LazyEntityId<>((Supplier) valueGetter, valueSetter, (Supplier) suppliedValue);
         } else {
+            //noinspection CastCanBeRemovedNarrowingVariableType -> Not possible, would supply incorrect type if entity has EntityId and destination field is not Persistable.
             return new LazyEntityReference<>((Supplier<Persistable>) valueGetter, (Consumer<Persistable>)valueSetter, (Supplier<Persistable>) suppliedValue);
         }
     }

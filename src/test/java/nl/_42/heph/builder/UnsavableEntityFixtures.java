@@ -11,10 +11,4 @@ public class UnsavableEntityFixtures extends AbstractBuilder<UnsavableEntity, Un
         return blank()
                 .withVersion(EXPECTED_VERSION);
     }
-
-    public UnsavableEntity v2_0_0() {
-        return base()
-                .withVersion("2.0.0")
-                .create();
-    }
 }

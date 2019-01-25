@@ -4,9 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [1.0.0] - 2019-01-25
 ### Added
 This version makes the usage of Heph much easier by offering auto-generated implementations of the value setter methods within your BuildCommands.
+Also, it's no longer required to supply a set of `BuilderConstructors` and implement a `getRepository` method for each builder.
 
 ### BREAKING changes
 Builder classes now have to be declared as `interfaces` extending `AbstractBuildCommand<Entity, Repository>` and need to be placed in their own source file

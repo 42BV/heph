@@ -5,7 +5,8 @@ import nl._42.heph.domain.Person;
 import nl._42.heph.domain.PersonRepository;
 
 /**
- * Test buildCommand referencing the wrong repository (PersonRepository instead of PersonFixturesRepository). Should throw {@link nl._42.heph.MultipleRepositoriesExistException} when used.
+ * Test buildCommand referencing the wrong repository (PersonRepository instead of PersonFixturesRepository).
+ * Should throw {@link nl._42.heph.MultipleRepositoriesExistException} when used.
  */
 public interface WrongRepositoryPersonBuildCommand extends AbstractBuildCommand<Person, PersonRepository> {
 

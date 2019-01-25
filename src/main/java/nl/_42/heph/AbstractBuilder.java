@@ -3,11 +3,7 @@ package nl._42.heph;
 import static java.lang.String.format;
 
 import java.io.Serializable;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +31,6 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.data.repository.Repository;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StopWatch;
 
 /**
  * <p>

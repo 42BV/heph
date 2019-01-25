@@ -18,7 +18,7 @@ import org.springframework.data.repository.support.Repositories;
  *
  * Example implementation:
  * <code>
- *     Person findEntity(Person entity) {
+ *     default Person findEntity(Person entity) {
  *         return getRepository().findByName(entity.getName());
  *     }
  * </code>

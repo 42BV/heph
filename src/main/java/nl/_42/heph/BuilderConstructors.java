@@ -20,7 +20,7 @@ import org.springframework.data.domain.Persistable;
  * @param <T> type of the entity, must a be Persistable
  * @param <BC> type of the BuildCommand that will be an inner class of the Builder
  */
-public class BuilderConstructors<T extends Persistable, BC extends AbstractBuildCommand> {
+class BuilderConstructors<T extends Persistable, BC extends AbstractBuildCommand> {
 
     /** the constructor for the BuildCommand used by the copy and update calls */
     private final Function<T, BC> constructorTakingEntity;
@@ -36,7 +36,7 @@ public class BuilderConstructors<T extends Persistable, BC extends AbstractBuild
      * @param constructorTakingSupplier BuildCommand constructor Function taking the entity Supplier
      * @param entityConstructor Entity constructor
      */
-    public BuilderConstructors(
+    BuilderConstructors(
             Function<T, BC> constructorTakingEntity,
             Function<Supplier<T>, BC> constructorTakingSupplier,
             Supplier<T> entityConstructor) {
