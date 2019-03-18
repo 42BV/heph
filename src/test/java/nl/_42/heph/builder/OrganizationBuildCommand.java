@@ -1,6 +1,7 @@
 package nl._42.heph.builder;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import nl._42.heph.AbstractBuildCommand;
@@ -34,7 +35,10 @@ public interface OrganizationBuildCommand extends AbstractBuildCommand<Organizat
     OrganizationBuildCommand withContactPersons(Person... contactPersons);
 
     // Collection -> Collection
-    OrganizationBuildCommand withContactPersons(Collection<?> contactPersons);
+    OrganizationBuildCommand withContactPersons(Collection<Person> contactPersons);
+
+    // Supplier -> Collection
+    OrganizationBuildCommand withContactPersons(Supplier<Set<Person>> contactPersons);
 
     // Array -> Array
     OrganizationBuildCommand withLegalIdentityNumbers(String[] legalIdentityNumbers);

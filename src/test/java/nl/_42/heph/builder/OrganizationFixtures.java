@@ -5,6 +5,7 @@ import java.util.Arrays;
 import nl._42.heph.AbstractBuilder;
 import nl._42.heph.domain.Organization;
 
+import org.assertj.core.util.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -56,6 +57,13 @@ public class OrganizationFixtures extends AbstractBuilder<Organization, Organiza
         return base()
                 .withCustomName("Orange")
                 .withOwner(() -> personFixtures.base().withName("E").create())
+                .create();
+    }
+
+    public Organization orange_withMultipleContactPersons() {
+        return blank()
+                .withName("Orange")
+                .withContactPersons(() -> Sets.newHashSet(Arrays.asList(personFixtures.base().withName("F").create(), personFixtures.base().withName("G").create())))
                 .create();
     }
 }
