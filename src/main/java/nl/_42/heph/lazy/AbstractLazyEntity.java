@@ -12,7 +12,7 @@ import org.springframework.data.domain.Persistable;
  * @param <T> the type of the entity
  * @param <A> the type of the value to store (can either be also the entity, or Long)
  */
-public abstract class AbstractLazyEntity<T extends Persistable, A> implements LazyEntity {
+public abstract class AbstractLazyEntity<T, A> implements LazyEntity {
 
     /**
      * the supplier that returns the currently set value. Used to determine if the

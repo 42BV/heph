@@ -11,7 +11,7 @@ import org.springframework.data.domain.Persistable;
  * reference will be resolved and set using the the setter consumer.
  * @param <T> classtype of the entity that is being resolved
  */
-public class LazyEntityReference<T extends Persistable> extends AbstractLazyEntity<T,T> {
+public class LazyEntityReference<T> extends AbstractLazyEntity<T,T> {
 
     public LazyEntityReference(Supplier<T> getter, Consumer<T> setter, Supplier<T> reference) {
         super(getter, setter, reference);

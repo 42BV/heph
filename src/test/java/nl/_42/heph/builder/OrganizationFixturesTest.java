@@ -64,6 +64,16 @@ public class OrganizationFixturesTest extends AbstractSpringTest {
     }
 
     @Test
+    public void collectionMappings_shouldResolveSuppliedCollectionCorrectly() {
+        Organization orangeWithMultipleContactPersons = organizationFixtures.orange_withMultipleContactPersons();
+
+        assertEquals("Orange", orangeWithMultipleContactPersons.getName());
+        assertEquals(2, orangeWithMultipleContactPersons.getContactPersons().size());
+        assertTrue(orangeWithMultipleContactPersons.getContactPersons().stream().anyMatch(p -> p.getName().equals("F")));
+        assertTrue(orangeWithMultipleContactPersons.getContactPersons().stream().anyMatch(p -> p.getName().equals("G")));
+    }
+
+    @Test
     public void customWithMethod_suppliedOwner_shouldExecuteWithMethodAndResolveBeforeFindReference() {
         Organization customOrange = organizationFixtures.orange_customNamed();
 
