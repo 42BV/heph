@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2019-03-18
+### Fixed
+- Issue [#14](https://github.com/42BV/heph/issues/14) **ClassCastException when passing a `Collection` of entities in a `Supplier` in a `BuildCommand`**; Collections can now be mapped as well.
+- Issue [#13](https://github.com/42BV/heph/issues/13) **NoClassDefFoundError when launching without BeanMapper on the classpath**; The library had a hard dependency on BeanMapper but it was only required to copy entities. Heph can now be used without BeanMapper, except for the `copy` function.
+
 ## [1.0.0] - 2019-01-25
 ### Added
 This version makes the usage of Heph much easier by offering auto-generated implementations of the value setter methods within your BuildCommands.
