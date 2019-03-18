@@ -45,13 +45,16 @@
         <beanmapper.version>2.4.1</beanmapper.version>
         <database.truncator.version>0.5.1.SPRING5</database.truncator.version>
         <h2database.version>1.4.196</h2database.version>
-        <spring.boot.version>2.0.3.RELEASE</spring.boot.version>
+        <spring.boot.version>2.1.2.RELEASE</spring.boot.version>
 
         <!-- Reporting -->
         <maven.cobertura.version>2.4</maven.cobertura.version>
         <maven.javadoc.version>2.10.3</maven.javadoc.version>
         <maven.project.version>2.4</maven.project.version>
         <maven.site.plugin.version>3.3</maven.site.plugin.version>
+
+        <java9.sourceDirectory>${project.basedir}/src/main/java9</java9.sourceDirectory>
+        <java9.build.outputDirectory>${project.build.directory}/classes-java9</java9.build.outputDirectory>
     </properties>
 
     <distributionManagement>
@@ -101,6 +104,61 @@
 
     <build>
         <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>compile-java9</id>
+                        <phase>compile</phase>
+                        <configuration>
+                            <tasks>
+                                <mkdir dir="${java9.build.outputDirectory}" />
+                                <javac srcdir="${java9.sourceDirectory}" destdir="${java9.build.outputDirectory}"
+                                       classpath="${project.build.outputDirectory}" includeantruntime="false" />
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/META-INF/versions/9</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${java9.build.outputDirectory}</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Multi-Release>true</Multi-Release>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
 
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
