@@ -3,10 +3,12 @@ package nl._42.heph;
 import static java.lang.String.format;
 
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -30,6 +32,7 @@ import org.springframework.core.GenericTypeResolver;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.repository.Repository;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -58,21 +61,22 @@ public abstract class AbstractBuilder<T extends Persistable, BC extends Abstract
     /** The set of methods of {@link AbstractBuildCommand} to redirect to a custom implementation (if overridden only) */
     private static final List<Method> ABSTRACT_BUILD_COMMAND_METHODS = Arrays.asList(AbstractBuildCommand.class.getDeclaredMethods());
 
-    /** BuildCommand value storage key for proxy generation */
-    private static final String BC = "BC";
-
     private static final Logger logger = LoggerFactory.getLogger(AbstractBuilder.class);
+
+    /** Class name of the optional BeanMapper for copying entity */
+    private static final String BEANMAPPER_CLASS_NAME = "io.beanmapper.BeanMapper";
 
     /**
      * BeanMapper is used when the copy function is invoked. It will attempt to make a clear
      * copy. Be aware that non-traditional getters/setters may hamper the working of the copy
-     * method.
+     * method. This BeanMapper instance is wrapped to avoid a runtime crash if BeanMapper is not on the classpath.
      */
-    @Autowired
-    private BeanMapper beanMapper;
+    private WeakReference<io.beanmapper.BeanMapper> beanMapper;
 
     /**
-     * ApplicationContext is used to automatically assign a repository when the constructors() function is invoked for the first time.
+     * ApplicationContext is used to:
+     * - Automatically assign a repository when the constructors() function is invoked for the first time.
+     * - Automatically wire the BeanMapper when the copy() function is invoked for the first time (to make this library work without BeanMapper on classpath)
      */
     @Autowired
     private ApplicationContext applicationContext;
@@ -142,7 +146,17 @@ public abstract class AbstractBuilder<T extends Persistable, BC extends Abstract
      * @return BuildCommand wrapping the copied entity
      */
     public BC copy(T entity) {
-        T copy = beanMapper.map(entity, constructors().getEntityConstructor().get());
+        if (!ClassUtils.isPresent(BEANMAPPER_CLASS_NAME, applicationContext.getClassLoader())) {
+            throw new UnsupportedOperationException("The copy feature requires the io.beanmapper dependency to be added to your project. Please include it and then try again.");
+        }
+
+        if (beanMapper == null || beanMapper.get() == null) {
+            beanMapper = new WeakReference<>(applicationContext.getBean(BeanMapper.class));
+        }
+
+        T copy = Objects.requireNonNull(beanMapper.get(), "Error instantiating BeanMapper. Please make sure a valid BeanMapper bean has been declared.")
+                .map(entity, constructors().getEntityConstructor().get());
+
         nullifyIdField(copy);
         return update(copy);
     }
