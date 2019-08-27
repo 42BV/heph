@@ -218,7 +218,8 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
      * @return the pre-existing entity if found, or else null
      */
     public T findEntity(T entity) {
-        throw new FindEntityMethodNotImplementedException("Please override the 'findEntity()' method in your BuildCommand interface by using a default implementation.");
+        throw new FindEntityMethodNotImplementedException(
+                "Please override the 'findEntity()' method in your BuildCommand interface by using a default implementation.");
     }
 
     /**
@@ -260,9 +261,9 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
 
         R repository = getRepository();
         if (repository instanceof CrudRepository) {
-            saved = ((CrudRepository<T, ?>)repository).save(preProcessed);
+            saved = ((CrudRepository<T, ?>) repository).save(preProcessed);
         } else if (repository instanceof BeanSaver) {
-            saved = ((BeanSaver<T, ?>)repository).save(preProcessed);
+            saved = ((BeanSaver<T, ?>) repository).save(preProcessed);
         }
 
         return performPostProcessing(saved);
@@ -324,7 +325,8 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
      * @param entityIdAnnotation Optional {@link EntityId} annotation to specify that the database ID of the fieldValue must be used instead of the actual object.
      * @return Current instance of the buildCommand, with the value applied to the builder's entity.
      */
-    public AbstractBuildCommand<T, R> withValue(String fieldName, Object fieldValue, Resolve resolveAnnotation, EntityField entityFieldAnnotation, EntityId entityIdAnnotation) {
+    public AbstractBuildCommand<T, R> withValue(String fieldName, Object fieldValue, Resolve resolveAnnotation, EntityField entityFieldAnnotation,
+            EntityId entityIdAnnotation) {
         Field field = getAccessibleField(fieldName, entityFieldAnnotation);
 
         if (fieldValue != null && fieldValue.getClass().isArray()) {
@@ -362,10 +364,12 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
             } else {
                 int originalLength = Array.getLength(destinationArray);
                 int inputLength = Array.getLength(inputValues);
-                destinationArray = copyArray(destinationArray, originalLength + inputLength); // Increase the size of the new array to match current + new values in total.
+                destinationArray = copyArray(destinationArray,
+                        originalLength + inputLength); // Increase the size of the new array to match current + new values in total.
                 ReflectionUtils.setField(field, entity, destinationArray);
                 //noinspection SuspiciousSystemArraycopy method can only be called with array class and destination will always be some sort of array.
-                System.arraycopy(inputValues, 0, destinationArray, originalLength, inputLength); // Native-copy the passed array to the end of the already-existing array.
+                System.arraycopy(inputValues, 0, destinationArray, originalLength,
+                        inputLength); // Native-copy the passed array to the end of the already-existing array.
             }
         } else if (Collection.class.isAssignableFrom(targetType)) { // Array -> Collection
             Collection current = (Collection) ReflectionUtils.getField(field, entity);
@@ -381,7 +385,8 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
                 Collections.addAll(current, copyToNonPrimitiveArray(inputValues));
             }
         } else {
-            throw new IllegalArgumentException(format("Attempted to set array value into non-array / collection field [%s] of [%s]", field.getName(), entity.getClass().getName()));
+            throw new IllegalArgumentException(
+                    format("Attempted to set array value into non-array / collection field [%s] of [%s]", field.getName(), entity.getClass().getName()));
         }
 
         return this;
@@ -402,19 +407,7 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
 
         // Collection -> Array
         if (targetType.isArray()) {
-            Object[] destinationArray = (Object[]) ReflectionUtils.getField(field, entity);
-
-            if (destinationArray == null) {
-                destinationArray = Arrays.copyOf(inputValues.toArray(), inputValues.size());
-                ReflectionUtils.setField(field, entity, destinationArray);
-            } else {
-                int originalLength = destinationArray.length;
-                destinationArray = Arrays.copyOf(destinationArray, destinationArray.length + inputValues.size()); // Increase the size of the new array to match current + new values in total.
-                ReflectionUtils.setField(field, entity, destinationArray);
-                System.arraycopy(inputValues.toArray(), 0, destinationArray, originalLength, inputValues.size()); // Native-copy the passed collection (as array) to the end of the already-existing array.
-            }
-
-
+            setArrayValue(field, inputValues);
         } else if (Collection.class.isAssignableFrom(targetType)) { // Collection -> Collection
             Collection current = (Collection) ReflectionUtils.getField(field, entity);
 
@@ -425,10 +418,44 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
 
             current.addAll(inputValues);
         } else {
-            throw new IllegalArgumentException(format("Attempted to set collection value into non-array / collection field [%s] of [%s]", field.getName(), entity.getClass().getName()));
+            throw new IllegalArgumentException(
+                    format("Attempted to set collection value into non-array / collection field [%s] of [%s]", field.getName(), entity.getClass().getName()));
         }
 
         return this;
+    }
+
+    private void setArrayValue(Field field, Collection inputValues) {
+        Object[] originalValues = (Object[]) ReflectionUtils.getField(field, entity);
+
+        int arraySize = getArraySize(inputValues, originalValues);
+
+        Object newArray = Array.newInstance(field.getType().getComponentType(), arraySize);
+
+        int i = 0;
+        //Add original array values
+        if (originalValues != null) {
+            for (Object object : originalValues) {
+                Array.set(newArray, i, object);
+                i++;
+            }
+        }
+
+        //Add new values
+        for (Object object : inputValues) {
+            Array.set(newArray, i, object);
+            i++;
+        }
+
+        ReflectionUtils.setField(field, entity, newArray);
+    }
+
+    private int getArraySize(Collection inputValues, Object[] destinationArray) {
+        int arraySize = inputValues.size();
+        if (destinationArray != null) {
+            arraySize += destinationArray.length;
+        }
+        return arraySize;
     }
 
     /**
@@ -475,7 +502,7 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
         if (entityIdAnnotation == null || !(fieldValue instanceof Persistable)) {
             ReflectionUtils.setField(field, entity, fieldValue);
         } else {
-            ReflectionUtils.setField(field, entity, ((Persistable)fieldValue).getId());
+            ReflectionUtils.setField(field, entity, ((Persistable) fieldValue).getId());
         }
 
         return this;
@@ -498,7 +525,8 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
         Field field = ReflectionUtils.findField(entity.getClass(), realFieldName);
 
         if (field == null) {
-            throw new IllegalArgumentException(format("Could not set value for entity class [%s]: Field [%s] is not present in the class or its superclasses!", entity.getClass().getName(), realFieldName));
+            throw new IllegalArgumentException(format("Could not set value for entity class [%s]: Field [%s] is not present in the class or its superclasses!",
+                    entity.getClass().getName(), realFieldName));
         }
 
         ReflectionUtils.makeAccessible(field);
@@ -529,11 +557,13 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
 
         // We look up the getter and the setter of the field, and pass these to the LazyEntity instance so it can safely set the values to the entity.
         if (pd.getReadMethod() != null) {
-            valueGetter = () -> invokeOnEntityWithHandledExceptions(pd.getReadMethod(), () -> "Failed to call method [%s] to get value from object of class [%s]");
+            valueGetter = () -> invokeOnEntityWithHandledExceptions(pd.getReadMethod(),
+                    () -> "Failed to call method [%s] to get value from object of class [%s]");
         }
 
         if (pd.getWriteMethod() != null) {
-            valueSetter = (value) -> invokeOnEntityWithHandledExceptions(pd.getWriteMethod(), () -> "Failed to call method [%s] to apply value to object of class [%s]", value);
+            valueSetter = (value) -> invokeOnEntityWithHandledExceptions(pd.getWriteMethod(),
+                    () -> "Failed to call method [%s] to apply value to object of class [%s]", value);
         }
 
         // If an entityId annotation is present, then we map the destination field to the ID of the passed object.
@@ -541,7 +571,7 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
             return new LazyEntityId<>((Supplier) valueGetter, valueSetter, (Supplier) suppliedValue);
         } else {
             //noinspection CastCanBeRemovedNarrowingVariableType -> Not possible, would supply incorrect type if entity has EntityId and destination field is not Persistable.
-            return new LazyEntityReference<>((Supplier<Persistable>) valueGetter, (Consumer<Persistable>)valueSetter, (Supplier<Persistable>) suppliedValue);
+            return new LazyEntityReference<>((Supplier<Persistable>) valueGetter, (Consumer<Persistable>) valueSetter, (Supplier<Persistable>) suppliedValue);
         }
     }
 
@@ -552,7 +582,7 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
      * @param args Parameters of the method.
      * @return Result of the invoked method, or {@code null} if it is a void method.
      */
-    private Object invokeOnEntityWithHandledExceptions(Method methodToInvoke, Supplier<String> exceptionMessage, Object...args) {
+    private Object invokeOnEntityWithHandledExceptions(Method methodToInvoke, Supplier<String> exceptionMessage, Object... args) {
         try {
             return methodToInvoke.invoke(entity, args);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -580,11 +610,11 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
         throw new IllegalArgumentException("Could not create new collection of type " + collectionType);
     }
 
-    private Object[] copyToNonPrimitiveArray(Object primitiveArray){
+    private Object[] copyToNonPrimitiveArray(Object primitiveArray) {
         int arrayLength = Array.getLength(primitiveArray);
         Object[] outputArray = new Object[arrayLength];
 
-        for (int i = 0; i < arrayLength; ++i){
+        for (int i = 0; i < arrayLength; ++i) {
             outputArray[i] = Array.get(primitiveArray, i);
         }
 
@@ -593,23 +623,23 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
 
     private Object copyArray(Object array, int length) {
         if (array instanceof byte[]) {
-            return Arrays.copyOf((byte[])array, length);
+            return Arrays.copyOf((byte[]) array, length);
         } else if (array instanceof short[]) {
-            return Arrays.copyOf((short[])array, length);
+            return Arrays.copyOf((short[]) array, length);
         } else if (array instanceof int[]) {
-            return Arrays.copyOf((int[])array, length);
+            return Arrays.copyOf((int[]) array, length);
         } else if (array instanceof long[]) {
-            return Arrays.copyOf((long[])array, length);
+            return Arrays.copyOf((long[]) array, length);
         } else if (array instanceof float[]) {
-            return Arrays.copyOf((float[])array, length);
+            return Arrays.copyOf((float[]) array, length);
         } else if (array instanceof double[]) {
-            return Arrays.copyOf((double[])array, length);
+            return Arrays.copyOf((double[]) array, length);
         } else if (array instanceof boolean[]) {
-            return Arrays.copyOf((boolean[])array, length);
+            return Arrays.copyOf((boolean[]) array, length);
         } else if (array instanceof char[]) {
-            return Arrays.copyOf((char[])array, length);
+            return Arrays.copyOf((char[]) array, length);
         } else if (array instanceof Object[]) {
-            return Arrays.copyOf((Object[])array, length);
+            return Arrays.copyOf((Object[]) array, length);
         }
 
         throw new IllegalArgumentException("Object is not an array.");

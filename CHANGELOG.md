@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2019-08-29
+
+- Upgraded to Java 11  
+Java 8 is no longer supported in this version.
+
+
 ## [1.0.1] - 2019-03-18
 ### Fixed
 - Issue [#14](https://github.com/42BV/heph/issues/14) **ClassCastException when passing a `Collection` of entities in a `Supplier` in a `BuildCommand`**; Collections can now be mapped as well.
