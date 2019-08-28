@@ -51,7 +51,9 @@ public class BuildCommandAdvice implements MethodInterceptor {
         } else {
             // Otherwise, set the generated field value to the internal entity.
             if (args == null || args.length == 0) {
-                throw new IllegalArgumentException(format("Failed to resolve method [%s] in buildCommand of type [%s]: Expected one argument or varargs type, but got none", method.getName(), method.getDeclaringClass().getName()));
+                throw new IllegalArgumentException(
+                        format("Failed to resolve method [%s] in buildCommand of type [%s]: Expected one argument or varargs type, but got none",
+                                method.getName(), method.getDeclaringClass().getName()));
             }
 
             if (args.length == 1) {
@@ -63,7 +65,9 @@ public class BuildCommandAdvice implements MethodInterceptor {
                 return buildCommand.withValue(fieldName, argumentValue, resolveAnnotation, entityFieldAnnotation, entityIdAnnotation);
             }
 
-            throw new IllegalArgumentException(format("Failed to resolve method [%s] in buildCommand of type [%s]: Expected one argument or varargs type, but got multiple arguments", method.getName(), method.getDeclaringClass().getName()));
+            throw new IllegalArgumentException(
+                    format("Failed to resolve method [%s] in buildCommand of type [%s]: Expected one argument or varargs type, but got multiple arguments",
+                            method.getName(), method.getDeclaringClass().getName()));
         }
     }
 
@@ -89,10 +93,9 @@ public class BuildCommandAdvice implements MethodInterceptor {
         final Class<?> declaringClass = method.getDeclaringClass();
 
         try {
-            Constructor<MethodHandles.Lookup> constructor = MethodHandles.Lookup.class.getDeclaredConstructor(Class.class, int.class);
-            constructor.setAccessible(true);
-            return constructor.newInstance(declaringClass, MethodHandles.Lookup.PRIVATE).unreflectSpecial(method, declaringClass);
-        } catch (IllegalAccessException | NoSuchMethodException | InstantiationException | InvocationTargetException e) {
+            MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(declaringClass, MethodHandles.lookup());
+            return lookup.unreflectSpecial(method, declaringClass);
+        } catch (IllegalAccessException e) {
             throw new IllegalStateException("Could not retrieve method handle. Is the BuildCommand placed in a public interface?", e);
         }
     }

@@ -7,7 +7,6 @@ import nl._42.heph.domain.AncientTribe;
 
 public class AncientTribeFixtures extends AbstractBuilder<AncientTribe, AncientTribeBuildCommand> {
 
-
     @Override
     public AncientTribeBuildCommand base() {
         return blank();
@@ -15,16 +14,23 @@ public class AncientTribeFixtures extends AbstractBuilder<AncientTribe, AncientT
 
     AncientTribe himba() {
         return base()
-                .withInhabitantsHaveChildren(new boolean[] {true, false, true})
-                .withPhoto(new byte[] {1, 0, 1, 0, 0, 0, 0, 0, 1})
-                .withInhabitantChildrenCounts(new short[] {5, 0, 2})
-                .withInhabitantAges(new int[] {29, 14, 24})
-                .withInhabitantLengths(new long[] {169, 148, 175})
-                .withInhabitantShoeSizes(new float[] {39.5f, 37, 42f})
-                .withInhabitantWeights(new double[] {65, 50, 74})
-                .withInhabitantInitials(new char[] {'A', 'M', 'D'})
+                .withInhabitantsHaveChildren(new boolean[] { true, false, true })
+                .withPhoto(new byte[] { 1, 0, 1, 0, 0, 0, 0, 0, 1 })
+                .withInhabitantChildrenCounts(new short[] { 5, 0, 2 })
+                .withInhabitantAges(new int[] { 29, 14, 24 })
+                .withInhabitantLengths(new long[] { 169, 148, 175 })
+                .withInhabitantShoeSizes(new float[] { 39.5f, 37, 42f })
+                .withInhabitantWeights(new double[] { 65, 50, 74 })
+                .withInhabitantInitials(new char[] { 'A', 'M', 'D' })
                 .withInhabitantNames(Arrays.asList("Aaron", "Mustafa", "Dinhi"))
-                .withInhabitantsHaveBeenResearched(new boolean[] {true, true, true})
+                .withInhabitantsHaveBeenResearched(new boolean[] { true, true, true })
+                .construct();
+    }
+
+    AncientTribe doubleInhabitantNames() {
+        return base()
+                .withInhabitantNames(Arrays.asList("Simba", "Mufasa"))
+                .withInhabitantNames(Arrays.asList("Scar", "Nala"))
                 .construct();
     }
 }
