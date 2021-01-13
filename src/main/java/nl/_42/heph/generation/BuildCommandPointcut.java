@@ -11,7 +11,7 @@ import org.springframework.aop.support.StaticMethodMatcherPointcut;
  */
 public class BuildCommandPointcut extends StaticMethodMatcherPointcut {
 
-    static final String WITH_PREFIX = "with";
+    public static final String WITH_PREFIX = "with";
 
     @Override
     public boolean matches(Method method, Class<?> targetClass) {
