@@ -47,7 +47,6 @@
         <beanmapper.version>3.1.0</beanmapper.version>
         <database.truncator.version>1.0.0</database.truncator.version>
         <spring-boot.version>2.4.1</spring-boot.version>
-        <jaxb-api.version>2.2.11</jaxb-api.version>
     </properties>
 
     <distributionManagement>
@@ -111,12 +110,6 @@
             <groupId>nl.42</groupId>
             <artifactId>database-truncator</artifactId>
             <version>${database.truncator.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>${jaxb-api.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
