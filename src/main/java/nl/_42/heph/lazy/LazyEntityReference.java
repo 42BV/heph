@@ -3,8 +3,6 @@ package nl._42.heph.lazy;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import org.springframework.data.domain.Persistable;
-
 /**
  * When the entity is referred to as a normal entity (as opposed to a Long ID), this
  * class is used. If the getter supplier shows the current value is null, the entity

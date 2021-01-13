@@ -45,7 +45,7 @@ import org.springframework.util.ReflectionUtils;
 public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, ? extends Serializable>> implements AbstractBuildCommand<T, R> {
 
     /** the entity which is wrapped by the BuildCommand */
-    private T entity;
+    private final T entity;
 
     /** This field contains a store for maintaining temporary values required during the building of the entity */
     private final Map<String, Object> storedValues = new ConcurrentHashMap<>();
@@ -70,7 +70,7 @@ public class DefaultBuildCommand<T extends Persistable, R extends Repository<T, 
      * if true, states that no attempt will be made to find an already existing entity.
      * This mode is enabled when a copy or update has been called.
      */
-    private boolean updating;
+    private final boolean updating;
 
     /**
      * Creates the BuildCommand by wrapping the entity and storing a function to retrieve the repository. The entity supplied

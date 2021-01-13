@@ -4,8 +4,6 @@ import static java.lang.String.format;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import nl._42.heph.DefaultBuildCommand;

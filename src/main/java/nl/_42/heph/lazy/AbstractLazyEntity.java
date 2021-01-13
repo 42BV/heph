@@ -3,8 +3,6 @@ package nl._42.heph.lazy;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import org.springframework.data.domain.Persistable;
-
 /**
  * Class that takes care of shared logic for all LazyEntity implementations. The most
  * important part is the verifying whether a value is already stored and, if not,
