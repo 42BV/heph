@@ -18,7 +18,7 @@ In order to use Heph to power your testsuite, simply add the following Maven dep
 <dependency>
     <groupId>nl.42</groupId>
     <artifactId>heph</artifactId>
-    <version>1.0.0</version>
+    <version>2.0.1</version>
 </dependency>
 ```
 
