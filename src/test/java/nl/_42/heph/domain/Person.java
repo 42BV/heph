@@ -1,8 +1,7 @@
 package nl._42.heph.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
 import nl._42.heph.shared.AbstractEntity;
 
 @Entity

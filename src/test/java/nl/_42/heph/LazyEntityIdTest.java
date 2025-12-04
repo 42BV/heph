@@ -1,6 +1,6 @@
 package nl._42.heph;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.function.Supplier;
 
@@ -8,7 +8,7 @@ import nl._42.heph.domain.Organization;
 import nl._42.heph.domain.Person;
 import nl._42.heph.lazy.LazyEntityId;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class LazyEntityIdTest {
 

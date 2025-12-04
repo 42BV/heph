@@ -1,6 +1,7 @@
 package nl._42.heph.builder;
 
 import java.util.Arrays;
+import java.util.List;
 
 import nl._42.heph.AbstractBuilder;
 import nl._42.heph.domain.Organization;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrganizationFixtures extends AbstractBuilder<Organization, OrganizationBuildCommand> {
 
-    public static final Long EXPECTED_ID        = 42L;
     public static final String EXPECTED_NAME    = "42BV";
 
     @Autowired
@@ -21,7 +21,6 @@ public class OrganizationFixtures extends AbstractBuilder<Organization, Organiza
     @Override
     public OrganizationBuildCommand base() {
         return blank()
-                .withId(EXPECTED_ID)
                 .withName(EXPECTED_NAME);
     }
 
@@ -40,7 +39,7 @@ public class OrganizationFixtures extends AbstractBuilder<Organization, Organiza
         return base()
                 .withName("Banana")
                 .withContactPersons(personFixtures.base().withName("A").create(), personFixtures.base().withName("B").create())
-                .withLegalIdentityNumbers(new String[] {"42", "24"})
+                .withLegalIdentityNumbers(List.of("42", "24"))
                 .withLegalContract(new byte[] {42, 24})
                 .create();
     }

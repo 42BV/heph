@@ -1,13 +1,13 @@
 package nl._42.heph;
 
 import static org.assertj.core.api.Fail.fail;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import nl._42.heph.builder.PersonFixtures;
 import nl._42.heph.domain.Person;
 import nl._42.heph.shared.AbstractSpringTest;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;

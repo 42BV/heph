@@ -1,9 +1,8 @@
-[![Build Status](https://github.com/42BV/heph/workflows/Java%20CI%20with%20Maven/badge.svg)](https://github.com/42BV/heph/actions?query=workflow%3A%22Java+CI+with+Maven%22)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/f08863da179d410c977bbf3e143b0b1a)](https://www.codacy.com/gh/42BV/heph/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=42BV/heph&amp;utm_campaign=Badge_Grade)
-[![BCH compliance](https://bettercodehub.com/edge/badge/42BV/heph?branch=master)](https://bettercodehub.com/)
-[![codecov](https://codecov.io/gh/42BV/heph/branch/master/graph/badge.svg)](https://codecov.io/gh/42BV/heph)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/nl.42/heph/badge.svg)](https://maven-badges.herokuapp.com/maven-central/nl.42/heph)
-[![Javadocs](http://javadoc.io/badge/nl.42/heph.svg)](http://javadoc.io/doc/nl.42/heph)
+[![Java CI with Maven](https://github.com/42BV/heph/actions/workflows/maven.yml/badge.svg)](https://github.com/42BV/heph/actions/workflows/maven.yml)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/f08863da179d410c977bbf3e143b0b1a)](https://app.codacy.com/gh/42BV/heph/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![codecov](https://codecov.io/gh/42BV/heph/graph/badge.svg?token=VMj23kHCls)](https://codecov.io/gh/42BV/heph)
+[![Maven Central](https://img.shields.io/maven-central/v/nl.42/heph.svg?color=green)](https://central.sonatype.com/artifact/nl.42/heph)
+[![Javadocs](https://www.javadoc.io/badge2/nl.42/heph/javadoc.svg)](https://www.javadoc.io/doc/nl.42/heph)
 [![Apache 2](http://img.shields.io/badge/license-Apache%202-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 # Heph
@@ -18,7 +17,7 @@ In order to use Heph to power your testsuite, simply add the following Maven dep
 <dependency>
     <groupId>nl.42</groupId>
     <artifactId>heph</artifactId>
-    <version>2.0.1</version>
+    <version>3.0.0</version>
 </dependency>
 ```
 

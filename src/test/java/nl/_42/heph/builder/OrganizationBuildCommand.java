@@ -40,10 +40,10 @@ public interface OrganizationBuildCommand extends AbstractBuildCommand<Organizat
     // Supplier -> Collection
     OrganizationBuildCommand withContactPersons(Supplier<Set<Person>> contactPersons);
 
-    // Array -> Array
+    // Array -> List
     OrganizationBuildCommand withLegalIdentityNumbers(String[] legalIdentityNumbers);
 
-    // Collection -> Array
+    // Collection -> List
     OrganizationBuildCommand withLegalIdentityNumbers(Collection<String> legalIdentityNumbers);
 
     // Primitive array

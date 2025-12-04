@@ -1,12 +1,12 @@
 package nl._42.heph;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import nl._42.heph.builder.OrganizationFixtures;
 import nl._42.heph.domain.Person;
 import nl._42.heph.lazy.LazyEntityReference;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class LazyEntityReferenceTest {
 

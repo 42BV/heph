@@ -1,10 +1,10 @@
 package nl._42.heph.builder;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ import nl._42.heph.domain.Organization;
 import nl._42.heph.domain.OrganizationRepository;
 import nl._42.heph.shared.AbstractSpringTest;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class OrganizationFixturesTest extends AbstractSpringTest {
@@ -36,7 +36,7 @@ public class OrganizationFixturesTest extends AbstractSpringTest {
 
         List<Organization> organizations = organizationRepository.findAll();
         assertEquals(1, organizations.size());
-        assertEquals(organization.getName(), organizations.get(0).getName());
+        assertEquals(organization.getName(), organizations.getFirst().getName());
     }
 
     @Test
@@ -46,13 +46,13 @@ public class OrganizationFixturesTest extends AbstractSpringTest {
         assertEquals(2, banana.getContactPersons().size());
         assertTrue(banana.getContactPersons().stream().anyMatch(p -> p.getName().equals("A")));
         assertTrue(banana.getContactPersons().stream().anyMatch(p -> p.getName().equals("B")));
-        assertArrayEquals(new String[] {"42", "24"}, banana.getLegalIdentityNumbers());
+        assertArrayEquals(new String[] {"42", "24"}, banana.getLegalIdentityNumbers().toArray());
 
         Organization pie = organizationFixtures.pie();
         assertEquals(2, pie.getContactPersons().size());
         assertTrue(pie.getContactPersons().stream().anyMatch(p -> p.getName().equals("C")));
         assertTrue(pie.getContactPersons().stream().anyMatch(p -> p.getName().equals("D")));
-        assertArrayEquals(new String[] {"12", "34"}, pie.getLegalIdentityNumbers());
+        assertArrayEquals(new String[] {"12", "34"}, pie.getLegalIdentityNumbers().toArray());
 
         Organization custom = organizationFixtures.base()
                 .withName("Lemon")
@@ -60,7 +60,7 @@ public class OrganizationFixturesTest extends AbstractSpringTest {
                 .withLegalIdentityNumbers(new String[] {"48"})
                 .create();
 
-        assertArrayEquals(new String[] {"42", "24", "48"}, custom.getLegalIdentityNumbers());
+        assertArrayEquals(new String[] {"42", "24", "48"}, custom.getLegalIdentityNumbers().toArray());
     }
 
     @Test

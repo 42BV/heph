@@ -1,16 +1,17 @@
 package nl._42.heph.domain;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderColumn;
-
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
 import nl._42.heph.shared.AbstractEntity;
 
 @Entity
@@ -26,7 +27,7 @@ public class Organization extends AbstractEntity {
     @OrderColumn(name = "legal_identity_number_sequence")
     @CollectionTable(name = "organization_legal_identity_number", joinColumns = @JoinColumn(name = "organization_id"))
     @Column(name = "legal_identity_number")
-    private String[] legalIdentityNumbers = new String[0];
+    private List<String> legalIdentityNumbers = new ArrayList<>();
 
     private byte[] legalContract;
 
@@ -48,11 +49,11 @@ public class Organization extends AbstractEntity {
         this.contactPersons = contactPersons;
     }
 
-    public String[] getLegalIdentityNumbers() {
+    public List<String> getLegalIdentityNumbers() {
         return legalIdentityNumbers;
     }
 
-    public void setLegalIdentityNumbers(String[] legalIdentityNumbers) {
+    public void setLegalIdentityNumbers(List<String> legalIdentityNumbers) {
         this.legalIdentityNumbers = legalIdentityNumbers;
     }
 
