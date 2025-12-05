@@ -22,7 +22,7 @@ public abstract class AbstractEntity implements Persistable<Long> {
         return id;
     }
 
-    public final void setId(Long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
