@@ -9,6 +9,5 @@ import nl._42.heph.domain.PersonRepository;
  */
 public interface PersonFixturesRepository extends PersonRepository {
 
-    Person findByNameAndOrganizationIdAndWorkspaceId(String name, Long organisationId, Long workspaceId);
-
+    Person findByNameAndAndWorkspaceIdAndOrganizationId(String name, Long workspaceId, Long organisationId);
 }

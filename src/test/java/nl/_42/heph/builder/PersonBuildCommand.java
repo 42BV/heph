@@ -16,7 +16,7 @@ public interface PersonBuildCommand extends AbstractBuildCommand<Person, PersonF
 
     @Override
     default Person findEntity(Person entity) {
-        return getRepository().findByNameAndOrganizationIdAndWorkspaceId(entity.getName(), entity.getOrganizationId(), entity.getWorkspaceId());
+        return getRepository().findByNameAndAndWorkspaceIdAndOrganizationId(entity.getName(), entity.getWorkspaceId(), entity.getOrganizationId());
     }
 
     @Override
