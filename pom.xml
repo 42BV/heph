@@ -3,7 +3,7 @@
 
     <groupId>nl.42</groupId>
     <artifactId>heph</artifactId>
-    <version>2.0.2-SNAPSHOT</version>
+    <version>3.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>42 Heph</name>
     <description>Library for creating smart test-data builders. Name is short for Hephaestus</description>
